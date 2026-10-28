@@ -1,0 +1,30 @@
+// Settings Service database (pos_settings_db): shop profiles. The columns follow the row the service already uses
+// (repositories/memory/businessProfileRepository.js) and the limits its validation enforces
+// (middleware/validation/settingsValidation.js). accountId and ownerId are ids owned by the Auth Service; there is no
+// foreign key across databases, services reference each other by id only.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model ShopProfile {
+  id        Int      @id @default(autoincrement())
+  accountId Int
+  ownerId   Int?
+  name      String   @db.VarChar(150)
+  address   String   @db.VarChar(255)
+  phone     String   @db.VarChar(30)
+  email     String?  @db.VarChar(254)
+  website   String?  @db.VarChar(255)
+  timezone  String?  @db.VarChar(60) // one of the five labels in config/constants/timezones.js; empty until the shop is edited after signup
+  imagePath String?  @db.VarChar(60) // generated <uuid>.png|jpg file name in the uploads folder, never a path
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+
+  @@index([accountId])
+  @@map("shop_profiles")
+}

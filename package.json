@@ -1,0 +1,26 @@
+{
+  "name": "pos-cafe",
+  "private": true,
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev:frontend": "pnpm --filter ./frontend dev",
+    "dev:gateway": "pnpm --filter @pos-cafe/gateway dev",
+    "dev:auth": "pnpm --filter @pos-cafe/auth-service dev",
+    "dev:settings": "pnpm --filter @pos-cafe/settings-service dev",
+    "dev:staff": "pnpm --filter @pos-cafe/staff-service dev",
+    "dev:menu": "pnpm --filter @pos-cafe/menu-service dev",
+    "dev:sales": "pnpm --filter @pos-cafe/sales-service dev",
+    "dev:services": "pnpm --parallel --filter @pos-cafe/gateway --filter \"./backend/services/*-service\" dev",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build",
+    "db:generate": "pnpm -r --if-present db:generate",
+    "db:migrate:deploy": "pnpm -r --if-present db:migrate:deploy",
+    "db:migrate:status": "pnpm -r --if-present db:migrate:status",
+    "dev": "pnpm --parallel --filter @pos-cafe/frontend --filter @pos-cafe/gateway --filter \"./backend/services/*-service\" dev",
+    "check:architecture": "node scripts/check-architecture.cjs",
+    "test:services": "pnpm --filter @pos-cafe/shared --filter @pos-cafe/gateway --filter \"./backend/services/*-service\" test"
+  }
+}

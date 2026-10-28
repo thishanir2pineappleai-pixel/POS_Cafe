@@ -1,0 +1,78 @@
+// Menu Service database (pos_menu_db): categories, ingredients, discount definitions, products and the ingredient list of
+// each product. Columns and limits follow the rows the service already uses (repositories/memory/*) and its validation
+// (middleware/validation/munuValidation.js, ingredientValidation.js, discountValidation.js).
+// Discount APPLICATIONS (a definition applied over a period) belong to Sales and are not here.
+// Names of categories, ingredients and discounts are unique ignoring case: MySQL's default collation is case-insensitive,
+// so the unique indexes enforce the same rule the service checks.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique @db.VarChar(100)
+  createdAt DateTime  @default(now()) @db.DateTime(3)
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Discount {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique @db.VarChar(100)
+  percentage Decimal   @db.Decimal(5, 2) // 0 to 100, at most 2 decimals
+  createdAt  DateTime  @default(now()) @db.DateTime(3)
+  products   Product[]
+
+  @@map("discounts")
+}
+
+model Ingredient {
+  id        Int                 @id @default(autoincrement())
+  name      String              @unique @db.VarChar(100)
+  createdAt DateTime            @default(now()) @db.DateTime(3)
+  products  ProductIngredient[]
+
+  @@map("ingredients")
+}
+
+model Product {
+  id            Int                 @id @default(autoincrement())
+  name          String              @db.VarChar(150)
+  categoryId    Int
+  costPrice     Decimal?            @db.Decimal(10, 2) // optional (confirmed by the Figma)
+  sellingPrice  Decimal             @db.Decimal(10, 2)
+  quantity      BigInt // whole number from 0; the validation allows values above 32 bits
+  lowStockAlert BigInt? // optional, no default: without one a product is only In Stock or Out of stock
+  discountId    Int?
+  imagePath     String?             @db.VarChar(60) // generated <uuid>.png|jpg file name, never a path
+  createdAt     DateTime            @default(now()) @db.DateTime(3)
+  updatedAt     DateTime            @updatedAt @db.DateTime(3)
+  category      Category            @relation(fields: [categoryId], references: [id])
+  discount      Discount?           @relation(fields: [discountId], references: [id])
+  ingredients   ProductIngredient[]
+
+  @@index([categoryId])
+  @@index([discountId])
+  @@map("products")
+}
+
+// The ingredient list of a product. `position` keeps the order the list was saved in, which the API returns as is.
+// Deleting a product removes its links only (never an ingredient); an ingredient cannot be deleted while it is used.
+model ProductIngredient {
+  productId    Int
+  ingredientId Int
+  quantity     String     @db.VarChar(50) // free text such as "40 g"
+  position     Int
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@id([productId, ingredientId])
+  @@index([ingredientId])
+  @@map("product_ingredients")
+}

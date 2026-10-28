@@ -1,0 +1,26 @@
+{
+  "name": "@pos-cafe/auth-service",
+  "private": true,
+  "version": "0.0.0",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "test": "node --test --test-concurrency=1 --import @pos-cafe/shared/testing/safeTestEnv.js \"tests/**/*.test.js\"",
+    "db:generate": "prisma generate",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:status": "prisma migrate status"
+  },
+  "dependencies": {
+    "@pos-cafe/shared": "workspace:*",
+    "@prisma/adapter-mariadb": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "@prisma/client-runtime-utils": "7.10.1",
+    "dotenv": "^18.0.7",
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "prisma": "7.10.1"
+  }
+}

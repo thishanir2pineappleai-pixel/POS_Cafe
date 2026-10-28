@@ -1,0 +1,102 @@
+// Sales Service database (planned name: pos_sales_db): orders, their lines, and discount applications. The design follows
+// MIGRATION_PLAN_SALES_REPORTING.md section 3 and the rows the legacy Sales code used. Other services' ids (accountId and
+// shopId from Auth/Settings, productId and discountId from Menu) are plain columns: there is no foreign key across databases.
+// Names and prices of order lines, and the name and percentage of a discount application, are COPIED when the row is saved,
+// so a later Menu edit or delete never changes old sales.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  accountId     Int
+  shopId        Int
+  orderNumber   String      @db.VarChar(30) // shown to users, for example #ORD12; unique per shop
+  type          String      @db.VarChar(20) // 'Take Away' | 'Dine-In' (config/constants/orders.js)
+  status        String      @db.VarChar(20) // 'Paid' | 'Preparing' | 'Pending' | 'Delivered' | 'Cancelled'
+  customerId    Int? // no customer table exists yet, nothing sets this
+  customerName  String?     @db.VarChar(100)
+  tableLabel    String?     @db.VarChar(30)
+  subtotal      Decimal     @db.Decimal(10, 2) // sum of quantity x unitPrice before discounts; calculated by the service
+  discountTotal Decimal     @default(0) @db.Decimal(10, 2) // sum of the line discounts
+  total         Decimal     @db.Decimal(10, 2) // subtotal - discountTotal; calculated by the service, never taken from a client
+  placedAt      DateTime    @db.DateTime(0) // business wall-clock time stored as is (no zone conversion), like the legacy 'YYYY-MM-DDTHH:mm:ss'
+  createdAt     DateTime    @default(now()) @db.DateTime(3)
+  updatedAt     DateTime    @updatedAt @db.DateTime(3)
+  items         OrderItem[]
+  payment       Payment?
+
+  @@unique([shopId, orderNumber])
+  @@index([accountId, placedAt])
+  @@index([shopId, placedAt])
+  @@index([shopId, status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id                    Int     @id @default(autoincrement())
+  orderId               Int
+  productId             Int? // Menu Service product id at order time; no key, the product may be deleted later
+  name                  String  @db.VarChar(150) // copied from the product when the order is placed
+  unitPrice             Decimal @db.Decimal(10, 2) // copied from the product when the order is placed
+  quantity              Int
+  position              Int // keeps the order the lines were placed in
+  discountPercentage    Decimal @default(0) @db.Decimal(5, 2) // percentage of the discount application applied to this line (0 = none)
+  discountAmount        Decimal @default(0) @db.Decimal(10, 2) // money taken off this line: round(quantity x unitPrice x percentage / 100)
+  discountApplicationId Int? // the application that gave the discount; no key, the application may be deleted later
+  order                 Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model DiscountApplication {
+  id                 Int                          @id @default(autoincrement())
+  accountId          Int
+  discountId         Int // Menu Service discount definition id
+  discountName       String                       @db.VarChar(100) // copied from the definition when saved
+  discountPercentage Decimal                      @db.Decimal(5, 2) // copied from the definition when saved
+  startDate          DateTime                     @db.Date
+  endDate            DateTime                     @db.Date
+  status             String                       @db.VarChar(20) // 'Active' | 'Inactive'
+  appliesToAll       Boolean
+  createdAt          DateTime                     @default(now()) @db.DateTime(3)
+  updatedAt          DateTime                     @updatedAt @db.DateTime(3)
+  products           DiscountApplicationProduct[]
+
+  @@index([accountId])
+  @@map("discount_applications")
+}
+
+model DiscountApplicationProduct {
+  applicationId Int
+  productId     Int // Menu Service product id; no key across databases
+  application   DiscountApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@id([applicationId, productId])
+  @@index([productId])
+  @@map("discount_application_products")
+}
+
+// One payment per order (BRD BR-05: cash or card when the order is completed). No provider is integrated and no card data is
+// stored: only the method and the amount, which the service takes from the order total. Refunds are not modelled (no rule exists).
+model Payment {
+  id         Int      @id @default(autoincrement())
+  orderId    Int      @unique
+  accountId  Int
+  method     String   @db.VarChar(10) // 'Cash' | 'Card'
+  amount     Decimal  @db.Decimal(10, 2) // equals orders.total at the time of payment
+  paidAt     DateTime @db.DateTime(0) // business wall-clock time, like orders.placedAt
+  recordedBy Int // Auth Service user id of whoever recorded it; no key across databases
+  createdAt  DateTime @default(now()) @db.DateTime(3)
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([accountId, paidAt])
+  @@map("payments")
+}

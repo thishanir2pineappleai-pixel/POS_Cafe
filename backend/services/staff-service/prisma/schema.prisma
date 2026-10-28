@@ -1,0 +1,256 @@
+// Staff Service database (pos_staff_db): roles, teams, shifts, the weekly roster, staff, their private documents, attendance,
+// leave and payroll. Columns follow the rows the service already uses (repositories/memory/*) and the limits its validation
+// enforces (middleware/validation/*Validation.js); the draft in backend/docs/staff-management-schema.md was the starting point.
+//
+// accountId and shopId are ids owned by the Auth and Settings services: there is NO foreign key across databases, services
+// reference each other by id only. Every row carries both so each shop only ever sees its own data.
+//
+// Calendar dates ("YYYY-MM-DD") are DATE columns. Times of day of an attendance record are the shop's local clock time
+// ("YYYY-MM-DDTHH:mm:ss", no time zone), kept exactly as text because the service treats them as naive business-local times.
+// Names (roles, teams, shifts) are unique per shop ignoring case: MySQL's default collation is case-insensitive (it is also
+// accent-insensitive, which is slightly stricter than the in-memory check).
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model StaffRole {
+  id        Int      @id @default(autoincrement())
+  accountId Int
+  shopId    Int
+  name      String   @db.VarChar(50)
+  grants    Json // { "Staff Management": ["view", "add", ...], ... }: the permission matrix, saved all at once
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+  staff     Staff[]
+
+  @@unique([shopId, name])
+  @@map("staff_roles")
+}
+
+model StaffTeam {
+  id        Int      @id @default(autoincrement())
+  accountId Int
+  shopId    Int
+  name      String   @db.VarChar(50)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+  staff     Staff[]
+
+  @@unique([shopId, name])
+  @@map("staff_teams")
+}
+
+// endTime earlier than startTime means the shift runs past midnight.
+model Shift {
+  id          Int               @id @default(autoincrement())
+  accountId   Int
+  shopId      Int
+  name        String            @db.VarChar(50)
+  startTime   String            @db.VarChar(5) // HH:mm
+  endTime     String            @db.VarChar(5) // HH:mm
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now()) @db.DateTime(3)
+  updatedAt   DateTime          @updatedAt @db.DateTime(3)
+  staff       Staff[]
+  assignments ShiftAssignment[]
+
+  @@unique([shopId, name])
+  @@map("shifts")
+}
+
+model Staff {
+  id                    Int               @id @default(autoincrement())
+  accountId             Int
+  shopId                Int
+  codeNumber            Int // STF0012 = 12, generated per shop, never reused (removed staff keep theirs)
+  name                  String            @db.VarChar(150)
+  gender                String            @db.VarChar(10)
+  phone                 String            @db.VarChar(255)
+  phoneNormalized       String            @db.VarChar(20)
+  email                 String            @db.VarChar(254) // stored lower-case
+  nic                   String            @db.VarChar(20) // upper-case, no spaces
+  dob                   DateTime          @db.Date
+  address               String            @db.VarChar(255)
+  emergencyName         String            @db.VarChar(150)
+  emergencyRelationship String            @db.VarChar(100)
+  emergencyPhone        String            @db.VarChar(255)
+  imagePath             String?           @db.VarChar(60) // generated file name in the private staff folder, never a path
+  joinDate              DateTime          @db.Date
+  roleId                Int
+  teamId                Int
+  shiftId               Int
+  employmentType        String            @db.VarChar(20)
+  active                Boolean           @default(true)
+  inactiveReason        String?           @db.VarChar(255)
+  workingDays           Json // ["mon", "tue", ...]
+  hoursPerWeek          Int
+  username              String            @db.VarChar(50)
+  usernameKey           String            @db.VarChar(50) // lower-case username: unique per account
+  passwordHash          String            @db.VarChar(255) // salted scrypt; staff cannot sign in yet
+  // Employment Records (owner only). A group is either completely present or completely NULL (never sent).
+  salaryType            String?           @db.VarChar(10)
+  salaryBasic           Decimal?          @db.Decimal(12, 2)
+  salaryOvertime        Boolean?
+  salaryOtRate          Decimal?          @db.Decimal(12, 2)
+  salaryPaymentMethod   String?           @db.VarChar(20)
+  salaryBankName        String?           @db.VarChar(100)
+  salaryAccountNumber   String?           @db.VarChar(50)
+  epfAllowed            Boolean?
+  epfEmployerNumber     String?           @db.VarChar(50)
+  epfEmployeeNumber     String?           @db.VarChar(50)
+  epfEmployeeRate       Decimal?          @db.Decimal(5, 2)
+  epfEmployerRate       Decimal?          @db.Decimal(5, 2)
+  epfEtfRate            Decimal?          @db.Decimal(5, 2)
+  deletedAt             DateTime?         @db.DateTime(3) // reversible removal: the row and its unique values stay reserved
+  createdAt             DateTime          @default(now()) @db.DateTime(3)
+  updatedAt             DateTime          @updatedAt @db.DateTime(3)
+  role                  StaffRole         @relation(fields: [roleId], references: [id])
+  team                  StaffTeam         @relation(fields: [teamId], references: [id])
+  shift                 Shift             @relation(fields: [shiftId], references: [id])
+  documents             StaffDocument[]
+  roster                ShiftAssignment[]
+  attendance            Attendance[]
+  leaves                Leave[]
+  payrollRecords        PayrollRecord[]
+  rewards               PayrollReward[]
+  deductions            PayrollDeduction[]
+
+  @@unique([shopId, codeNumber])
+  @@unique([shopId, email])
+  @@unique([shopId, phoneNormalized])
+  @@unique([shopId, nic])
+  @@unique([accountId, usernameKey])
+  @@index([shopId, deletedAt, active])
+  @@index([roleId])
+  @@index([teamId])
+  @@index([shiftId])
+  @@map("staff")
+}
+
+// CV / ID copy / employment agreement (owner only). One row per staff member and slot.
+model StaffDocument {
+  staffId    Int
+  slot       String   @db.VarChar(10) // cv | idCopy | agreement
+  storedName String   @db.VarChar(60) // generated file name in the private documents folder
+  fileName   String   @db.VarChar(80) // the client's name, cut to a safe label (never used as a path)
+  type       String   @db.VarChar(5) // pdf | doc | docx | png | jpg
+  size       Int
+  uploadedAt DateTime @db.DateTime(3)
+  staff      Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@id([staffId, slot])
+  @@map("staff_documents")
+}
+
+// The weekly roster: one row per staff member and weekday. A day with no row has nothing assigned yet; isOff marks a day off.
+model ShiftAssignment {
+  staffId Int
+  weekday String  @db.VarChar(3) // mon..sun
+  shiftId Int?
+  isOff   Boolean @default(false)
+  staff   Staff   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  shift   Shift?  @relation(fields: [shiftId], references: [id])
+
+  @@id([staffId, weekday])
+  @@index([shiftId])
+  @@map("shift_assignments")
+}
+
+model Attendance {
+  id         Int      @id @default(autoincrement())
+  accountId  Int
+  shopId     Int
+  staffId    Int
+  date       DateTime @db.Date
+  checkInAt  String   @db.VarChar(19) // local time, YYYY-MM-DDTHH:mm:ss
+  checkOutAt String?  @db.VarChar(19)
+  createdAt  DateTime @default(now()) @db.DateTime(3)
+  updatedAt  DateTime @updatedAt @db.DateTime(3)
+  staff      Staff    @relation(fields: [staffId], references: [id])
+
+  @@unique([staffId, date]) // one check-in per staff member and day
+  @@index([shopId, date])
+  @@map("attendance")
+}
+
+model Leave {
+  id        Int      @id @default(autoincrement())
+  accountId Int
+  shopId    Int
+  staffId   Int
+  type      String   @db.VarChar(20) // hour_permission | half_day | full_day
+  date      DateTime @db.Date
+  startTime String?  @db.VarChar(5)
+  endTime   String?  @db.VarChar(5)
+  half      String?  @db.VarChar(6) // first | second
+  reason    String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+  staff     Staff    @relation(fields: [staffId], references: [id])
+
+  @@unique([staffId, date]) // provisional rule: one leave per staff member and date
+  @@index([shopId, date])
+  @@map("leaves")
+}
+
+// One record per staff member and month of its pay date (checked by the service; a month column cannot be unique in Prisma).
+// Paying freezes the figures in `snapshot` ({ rewards, deductions, netPay }); nothing is processed or sent.
+model PayrollRecord {
+  id          Int       @id @default(autoincrement())
+  accountId   Int
+  shopId      Int
+  staffId     Int
+  payDate     DateTime  @db.Date
+  basicSalary Decimal   @db.Decimal(12, 2)
+  paidOn      DateTime? @db.DateTime(3)
+  snapshot    Json?
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @db.DateTime(3)
+  staff       Staff     @relation(fields: [staffId], references: [id])
+
+  @@index([staffId, payDate])
+  @@index([shopId, payDate])
+  @@map("payroll_records")
+}
+
+model PayrollReward {
+  id             Int      @id @default(autoincrement())
+  accountId      Int
+  shopId         Int
+  staffId        Int
+  date           DateTime @db.Date
+  reason         String   @db.VarChar(40)
+  specificReason String?  @db.VarChar(255) // only when the reason is "Other"
+  amount         Decimal  @db.Decimal(12, 2)
+  createdAt      DateTime @default(now()) @db.DateTime(3)
+  updatedAt      DateTime @updatedAt @db.DateTime(3)
+  staff          Staff    @relation(fields: [staffId], references: [id])
+
+  @@index([staffId, date])
+  @@index([shopId, date])
+  @@map("payroll_rewards")
+}
+
+model PayrollDeduction {
+  id             Int      @id @default(autoincrement())
+  accountId      Int
+  shopId         Int
+  staffId        Int
+  date           DateTime @db.Date
+  reason         String   @db.VarChar(40)
+  specificReason String?  @db.VarChar(255)
+  totalAmount    Decimal  @db.Decimal(12, 2)
+  monthlyAmount  Decimal  @db.Decimal(12, 2) // never more than the total (checked by the service)
+  createdAt      DateTime @default(now()) @db.DateTime(3)
+  updatedAt      DateTime @updatedAt @db.DateTime(3)
+  staff          Staff    @relation(fields: [staffId], references: [id])
+
+  @@index([staffId, date])
+  @@index([shopId, date])
+  @@map("payroll_deductions")
+}

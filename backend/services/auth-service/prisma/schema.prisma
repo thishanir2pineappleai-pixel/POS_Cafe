@@ -1,0 +1,114 @@
+// Auth Service database (pos_auth_db): accounts, users, sessions, signup registrations and one-time codes. Columns follow the
+// rows the service already uses (repositories/memory/*) and the limits its validation enforces
+// (middleware/validation/authValidation.js, adminValidation.js).
+//
+// Timestamps that the code reads from its injectable clock (shared/clock.js: expiry, cooldowns, revocation) are stored as
+// BigInt epoch milliseconds, exactly as the code handles them, so expiry logic and the tests' moved clock behave the same
+// on MySQL. Only the plain created/updated times of a user are DateTime.
+// Shops are NOT here: they belong to the Settings Service, which is asked over HTTP.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// One business account: its owner and the admins the owner adds. The id is what other services call accountId.
+model Account {
+  id    Int    @id @default(autoincrement())
+  users User[]
+
+  @@map("accounts")
+}
+
+// The login users ("admin profiles" in the API): an account's owner and its admins. Only a salted scrypt HASH is stored.
+// Email is unique ignoring case (MySQL's default collation is case-insensitive), like the service's own check. The phone
+// is not unique: signup checks it against existing users, but an admin added by the owner may share a number.
+model User {
+  id              Int       @id @default(autoincrement())
+  accountId       Int
+  role            String    @db.VarChar(10) // owner | admin, set by the server only
+  status          String    @db.VarChar(20) // active | disabled
+  username        String?   @db.VarChar(50) // only users created by signup
+  firstName       String    @db.VarChar(100)
+  lastName        String    @db.VarChar(100)
+  phone           String    @db.VarChar(255) // signup does not cap the length of the typed phone text
+  phoneNormalized String    @db.VarChar(20)
+  email           String    @unique @db.VarChar(254)
+  passwordHash    String    @db.VarChar(255)
+  imagePath       String?   @db.VarChar(60) // generated <uuid>.png|jpg file name, never a path
+  emailVerifiedAt BigInt?
+  phoneVerifiedAt BigInt?
+  lastLoginAt     BigInt?
+  createdAt       DateTime  @default(now()) @db.DateTime(3)
+  updatedAt       DateTime  @updatedAt @db.DateTime(3)
+  account         Account   @relation(fields: [accountId], references: [id])
+  sessions        Session[]
+
+  @@index([accountId])
+  @@index([phoneNormalized])
+  @@map("users")
+}
+
+// An access token carries a session id; the token only works while its session exists, is not revoked and has not expired.
+model Session {
+  sid       String  @id @db.VarChar(36)
+  userId    Int
+  accountId Int
+  expiresAt BigInt
+  createdAt BigInt
+  revokedAt BigInt?
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// One-time codes (signup email/phone, password reset) and password-reset tokens. Only keyed HASHES are stored, never a code.
+// `subject` is a registration id or a user id as text.
+model OneTimeCode {
+  id            Int     @id @default(autoincrement())
+  purpose       String  @db.VarChar(30)
+  subject       String  @db.VarChar(64)
+  hash          String  @db.VarChar(64)
+  expiresAt     BigInt
+  attempts      Int     @default(0)
+  usedAt        BigInt?
+  invalidatedAt BigInt?
+  createdAt     BigInt
+
+  @@index([purpose, subject])
+  @@index([purpose, hash])
+  @@map("one_time_codes")
+}
+
+// An unfinished or finished signup. NOT a user: nobody can sign in before activation. Secrets are stored as hashes
+// (token, password, access key) and wiped (set to NULL) at activation. Columns appear as the signup steps complete.
+model Registration {
+  id                 Int     @id @default(autoincrement())
+  tokenHash          String? @unique @db.VarChar(64) // NULL after activation
+  tokenExpiresAt     BigInt
+  email              String  @db.VarChar(254)
+  username           String  @db.VarChar(50)
+  passwordHash       String? @db.VarChar(255) // NULL after activation
+  termsAcceptedAt    BigInt
+  status             String  @db.VarChar(30) // email_pending ... awaiting_activation | activated
+  emailVerifiedAt    BigInt?
+  phoneVerifiedAt    BigInt?
+  createdAt          BigInt
+  ownerName          String? @db.VarChar(100)
+  phone              String? @db.VarChar(255)
+  phoneNormalized    String? @db.VarChar(20)
+  businessName       String? @db.VarChar(150)
+  address            String? @db.VarChar(255)
+  accessKeyHash      String? @db.VarChar(255) // NULL after activation
+  accessKeyExpiresAt BigInt?
+  accessKeyAttempts  Int     @default(0)
+  accessKeySends     Json? // [epoch ms, ...] of the access keys sent in the last hour
+  activatedAt        BigInt?
+
+  @@index([email])
+  @@map("registrations")
+}

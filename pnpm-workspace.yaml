@@ -1,0 +1,11 @@
+packages:
+  - frontend
+  - backend
+  - backend/shared
+  - backend/gateway
+  - backend/services/*-service
+
+# Prisma's install scripts (engine check) are allowed explicitly: pnpm blocks all build scripts otherwise and `pnpm install` exits with an error.
+allowBuilds:
+  prisma: true
+  '@prisma/engines': true

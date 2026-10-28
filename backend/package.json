@@ -1,0 +1,6 @@
+{
+  "name": "@pos-cafe/backend",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Workspace folder of the backend: gateway/, shared/ and services/*-service. It has no code of its own."
+}
