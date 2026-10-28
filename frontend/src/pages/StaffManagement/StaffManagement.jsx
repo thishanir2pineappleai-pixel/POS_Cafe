@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { attempt, messageFor } from '../../api/errorHandler.js';
 import * as staffApi from '../../api/staffApi.js';
 import AddButton from '../../components/buttons/AddButton.jsx';
@@ -74,8 +75,13 @@ function FilterSelect({ label, value, list, allLabel, onChange }) {
 // the owner: for anyone else the server does not send them and the screens do not show them.
 export default function StaffManagement() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const { pathname } = useLocation();
   const isOwner = user?.role === 'Owner';
-  const [screen, setScreen] = useState({ name: 'list' }); // list | add | details | edit
+  const screen = pathname === '/staff/new' ? { name: 'add' }
+    : pathname.endsWith('/edit') ? { name: 'edit', id }
+      : id ? { name: 'details', id } : { name: 'list' };
   const [query, setQuery] = useState('');
   const search = useDebounced(query);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -88,7 +94,7 @@ export default function StaffManagement() {
 
   const showToast = (title, message) => setToast({ id: Date.now(), title, message });
   const closeToast = useCallback(() => setToast(null), []);
-  const toList = () => { setScreen({ name: 'list' }); setProblem(''); };
+  const toList = () => { setProblem(''); navigate('/staff'); };
 
   const rolesLoad = useResource((signal) => staffApi.listRoles(signal));
   const teamsLoad = useResource((signal) => staffApi.listTeams(signal));
@@ -232,7 +238,7 @@ export default function StaffManagement() {
               <h2>Staff Details</h2>
               <SearchInput value={query} onChange={updateQuery} placeholder="Search by staff id, name, role, phone, email...." />
               <FilterButton open={filterOpen} onClick={() => setFilterOpen(!filterOpen)} />
-              <AddButton label="Add Staff" onClick={() => setScreen({ name: 'add' })} />
+              <AddButton label="Add Staff" onClick={() => navigate('/staff/new')} />
             </div>
 
             {filterOpen && (
@@ -268,9 +274,9 @@ export default function StaffManagement() {
                       <span><StatusBadge active={s.active} /></span>
                       <span className="ptable__actions">
                         <button type="button" className="icon-btn icon-btn--green" aria-label={`View ${s.name}`} title="View"
-                          onClick={() => setScreen({ name: 'details', id: s.id })}><EyeIcon size={15} /></button>
+                          onClick={() => navigate(`/staff/${s.id}`)}><EyeIcon size={15} /></button>
                         <button type="button" className="icon-btn icon-btn--orange" aria-label={`Edit ${s.name}`} title="Edit"
-                          onClick={() => setScreen({ name: 'edit', id: s.id })}><EditIcon size={15} /></button>
+                          onClick={() => navigate(`/staff/${s.id}/edit`)}><EditIcon size={15} /></button>
                         <DeleteButton label={`Delete ${s.name}`} onClick={() => setDeleting(s)} />
                       </span>
                     </div>
@@ -298,8 +304,8 @@ export default function StaffManagement() {
 
       {(screen.name === 'details' || screen.name === 'edit') && current && (
         <StaffDetails key={`${current.id}-${screen.name}`} staff={current} lists={names} isOwner={isOwner} editing={screen.name === 'edit'}
-          onClose={toList} onEdit={() => setScreen({ name: 'edit', id: current.id })}
-          onCancelEdit={() => setScreen({ name: 'details', id: current.id })} onSave={saveEdit} />
+          onClose={toList} onEdit={() => navigate(`/staff/${current.id}/edit`)}
+          onCancelEdit={() => navigate(`/staff/${current.id}`)} onSave={saveEdit} />
       )}
 
       {deleting && (
