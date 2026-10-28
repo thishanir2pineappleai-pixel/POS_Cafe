@@ -23,7 +23,7 @@ import MainLayout from '../../layout/MainLayout.jsx';
 import AddStaff from './AddStaff.jsx';
 import { ShiftBadge, StaffAvatar, StatusBadge } from './StaffBadges.jsx';
 import StaffDetails from './StaffDetails.jsx';
-import { options } from './staffFormParts.jsx';
+import { options } from './StaffFormParts.jsx';
 import { DEFAULT_ROLES, DEFAULT_SHIFTS, DEFAULT_TEAMS, DOCUMENT_SLOTS, PAGE_SIZE, staffTag } from './staffConstants.js';
 import { createBody, fromApi, patchBody, statusChanged } from './staffMapper.js';
 

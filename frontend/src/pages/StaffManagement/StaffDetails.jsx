@@ -10,7 +10,7 @@ import {
 import * as staffApi from '../../api/staffApi.js';
 import { attempt } from '../../api/errorHandler.js';
 import { ShiftBadge, StaffPhoto, StatusBadge, useStaffPicture } from './StaffBadges.jsx';
-import { DocumentRow, EpfFields, SalaryFields, fieldKit, useForm } from './staffFormParts.jsx';
+import { DocumentRow, EpfFields, SalaryFields, fieldKit, useForm } from './StaffFormParts.jsx';
 import { DOCUMENT_SLOTS, GENDERS, formatMoney, staffTag } from './staffConstants.js';
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;

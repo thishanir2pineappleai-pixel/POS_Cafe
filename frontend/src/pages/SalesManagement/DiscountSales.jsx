@@ -2,7 +2,7 @@ import CancelButton from '../../components/buttons/CancelButton.jsx';
 import Dropdown from '../../components/common/Dropdown.jsx';
 import { ArrowRightIcon, CalendarIcon, PlusIcon } from '../../components/common/Icons.jsx';
 import { ModalShell } from '../../components/modals/ConfirmationModal.jsx';
-import { formatLong } from '../../api/formatDate.js';
+import { formatLong } from '../../utils/formatDate.js';
 
 // "Select Discount" (apply) / "Update Discount" (edit) dialog: pick a discount, then set its period.
 export default function DiscountSales({ mode, draft, defs, errors, onChange, onAddDiscount, onPickDates, onNext, onCancel }) {

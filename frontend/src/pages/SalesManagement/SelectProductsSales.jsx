@@ -5,7 +5,7 @@ import SearchInput from '../../components/common/SearchInput.jsx';
 import { BoxOutlineIcon } from '../../components/common/Icons.jsx';
 import ProductFilter from '../../components/filters/ProductFilter.jsx';
 import { ModalShell } from '../../components/modals/ConfirmationModal.jsx';
-import { formatRS } from '../../api/formatCurrency.js';
+import { formatRS } from '../../utils/formatCurrency.js';
 
 const OPTIONS = [
   { id: 'all', title: 'All Products', hint: 'Apply discount for all products.' },

@@ -1,5 +1,5 @@
 import { ArrowRightIcon, CalendarIcon, RefreshIcon, TriangleDownIcon } from '../common/Icons.jsx';
-import { formatLong, isSameDay } from '../../api/formatDate.js';
+import { formatLong, isSameDay } from '../../utils/formatDate.js';
 
 // Date control: "Today (...)", "Custom Day (...)" or "From (...) -> To (...)". Any control opens the picker.
 export default function DateFilter({ range, today, onOpen, onReset }) {

@@ -1,6 +1,6 @@
 import * as dashboardApi from '../../api/dashboardApi.js';
-import { formatRs } from '../../api/formatCurrency.js';
-import { productImage } from '../../api/formatImage.js';
+import { formatRs } from '../../utils/formatCurrency.js';
+import { productImage } from '../../utils/formatImage.js';
 import * as shopApi from '../../api/shopProfileApi.js';
 import ErrorState from '../../components/common/ErrorState.jsx';
 import LoadingState from '../../components/common/LoadingState.jsx';
@@ -10,7 +10,7 @@ import MainLayout from '../../layout/MainLayout.jsx';
 import OrderStatus from './OrderStatus.jsx';
 import RecentOrders from './RecentOrders.jsx';
 import SalesChart from './SalesChart.jsx';
-import StatCardsdash from './StatCardsdash.jsx';
+import StatCards from './StatCards.jsx';
 import StockSummary from './StockSummary.jsx';
 import TopSellingItems from './TopSellingItems.jsx';
 
@@ -70,7 +70,7 @@ export default function Dashboard() {
       {error && <ErrorState message={error} onRetry={reload} />}
       {data && (
         <div className="dash">
-          <StatCardsdash cards={cards} />
+          <StatCards cards={cards} />
           <div className="dash-row">
             <SalesChart shopId={data.summary.shopId} />
             <TopSellingItems items={topItems} />

@@ -1,7 +1,7 @@
 // Client-side checks for the Staff Management forms. Each function returns an object { fieldKey: message }; empty means valid.
 // The Figma marks no field optional, so every visible field is required unless it is hidden by a toggle (overtime, EPF/ETF,
 // bank details for Cash, inactive reason) or is the staff picture. Every format below is PENDING approval.
-import { parseSlash } from '../api/formatDate.js';
+import { parseSlash } from '../utils/formatDate.js';
 import { checkPassword, PASSWORD_RULE_TEXT } from './authValidation.js';
 import { DOCUMENT_SLOTS, MAX_DOC_BYTES } from '../pages/StaffManagement/staffConstants.js';
 

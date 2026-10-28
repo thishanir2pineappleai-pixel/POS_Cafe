@@ -13,7 +13,7 @@ POS_Cafe/
 ├── frontend/                                React + Vite UI              :5173
 │   ├── package.json  index.html  vite.config.js  .env.example  public/
 │   └── src/  App.jsx  main.jsx  index.css
-│       ├── api/  components/  pages/        Gateway client + one module per service area, shared UI, one folder per screen
+│       ├── api/  utils/  components/  pages/  Gateway calls, shared formatting helpers, shared UI, screen folders
 │       └── context/  hooks/  layout/  routes/  stepper/  validation/  assets/
 │   └── tests/                               logic tests (request client, staff form <-> API mapper): pnpm --filter @pos-cafe/frontend test
 │
@@ -31,6 +31,8 @@ POS_Cafe/
         ├── menu-service/                    :4004   pos_menu_db
         └── sales-service/                   :4005   pos_sales_db
 ```
+
+Page folders and React component files: PascalCase. Other JS files and non-page folders: camelCase/lowercase.
 
 ## Service layout
 

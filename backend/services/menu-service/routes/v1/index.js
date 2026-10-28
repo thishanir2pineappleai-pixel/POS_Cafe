@@ -8,7 +8,7 @@ const ingredientController = require('../../controllers/menu/ingredientControlle
 const discountController = require('../../controllers/menu/discountController');
 const {
   validateProductBody, validateProductQuery, validateIngredientQuantityBody, validateCategoryBody,
-} = require('../../middleware/validation/munuValidation');
+} = require('../../middleware/validation/menuValidation');
 const { validateIngredientBody, validateIngredientQuery } = require('../../middleware/validation/ingredientValidation');
 const { validateDiscountBody } = require('../../middleware/validation/discountValidation');
 

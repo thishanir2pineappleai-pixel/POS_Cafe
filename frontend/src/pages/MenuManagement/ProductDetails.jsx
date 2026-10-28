@@ -1,6 +1,6 @@
-import { StatusBadge } from '../../components/OneTimeUsable/ProductTable.jsx';
+import { StatusBadge } from './ProductTable.jsx';
 import { ArrowLeftIcon, EditIcon } from '../../components/common/Icons.jsx';
-import { productImage } from '../../api/formatImage.js';
+import { productImage } from '../../utils/formatImage.js';
 import { formatPrice } from './menuFormat.js';
 
 function Info({ label, note, children }) {

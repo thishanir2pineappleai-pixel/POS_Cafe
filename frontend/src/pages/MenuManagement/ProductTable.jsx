@@ -1,8 +1,8 @@
-import DeleteButton from '../buttons/DeleteButton.jsx';
-import EmptyState from '../common/EmptyState.jsx';
-import { EditIcon, EyeIcon } from '../common/Icons.jsx';
-import { productImage } from '../../api/formatImage.js';
-import { formatPrice } from '../../pages/MenuManagement/menuFormat.js';
+import DeleteButton from '../../components/buttons/DeleteButton.jsx';
+import EmptyState from '../../components/common/EmptyState.jsx';
+import { EditIcon, EyeIcon } from '../../components/common/Icons.jsx';
+import { productImage } from '../../utils/formatImage.js';
+import { formatPrice } from './menuFormat.js';
 
 const BADGE = { 'In Stock': 'in', 'Low Stock': 'low', 'Out of stock': 'out' };
 

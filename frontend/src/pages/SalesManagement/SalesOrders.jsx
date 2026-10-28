@@ -1,8 +1,8 @@
 import ExportSalesDataButton from '../../components/buttons/ExportSalesDataButton.jsx';
 import EmptyState from '../../components/common/EmptyState.jsx';
 import SearchInput from '../../components/common/SearchInput.jsx';
-import { formatRs } from '../../api/formatCurrency.js';
-import { formatLong, fromISO } from '../../api/formatDate.js';
+import { formatRs } from '../../utils/formatCurrency.js';
+import { formatLong, fromISO } from '../../utils/formatDate.js';
 
 const COLUMNS = ['Order ID', 'Order Type', 'Customer', 'Items', 'Total', 'Status', 'Time', 'Date'];
 const COLS = '1fr .9fr 1.1fr 2.2fr .9fr 1fr .9fr 1fr';
