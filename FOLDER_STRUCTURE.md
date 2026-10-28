@@ -96,4 +96,4 @@ The frontend's `src/api/` now has one module per backend area (auth, orders, sal
 categories, ingredients, discounts, staff, shops, admins, settings) on top of `client.js`, which attaches the session token and ends the
 session on a 401. The empty staff API placeholders are `attendanceApi`, `payrollApi`, `payrollRewardApi`, `payrollDeductionApi` and `shiftApi`; the Staff Service endpoints exist. Staff Attendance, Payroll, Roles & Permission, Shift, Rewards and Deductions screens, their staff validation files, and `routes/ProtectedRoute.jsx` are also placeholders marked with TODO comments.
 
-Other page files that are still empty because no design or rule exists for them: Dashboard `RegularCustomers`, Sales `PeakHourAnalysis`, Menu `CategoryManagement` / `IngredientManagement` / `DiscountMenu` (categories, ingredients and discount definitions are managed inside the product form), `Waiter/Orderlistpage`, and the Inventory and Customer Management sidebar items.
+`pages/StaffManagement/LeaveManagement.jsx` is also a placeholder for the Staff Service's leave, half-day leave and hour permission records.
