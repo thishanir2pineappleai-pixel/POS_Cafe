@@ -1,6 +1,6 @@
 // Menu Service database (pos_menu_db): categories, ingredients, discount definitions, products and the ingredient list of
 // each product. Columns and limits follow the rows the service already uses (repositories/memory/*) and its validation
-// (middleware/validation/munuValidation.js, ingredientValidation.js, discountValidation.js).
+// (middleware/validation/menuValidation.js, ingredientValidation.js, discountValidation.js).
 // Discount APPLICATIONS (a definition applied over a period) belong to Sales and are not here.
 // Names of categories, ingredients and discounts are unique ignoring case: MySQL's default collation is case-insensitive,
 // so the unique indexes enforce the same rule the service checks.

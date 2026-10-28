@@ -1,4 +1,4 @@
-import { formatLKR } from '../../api/formatCurrency.js';
+import { formatLKR } from '../../utils/formatCurrency.js';
 
 // Four summary cards for the selected date range (from the Sales Service). While the numbers load they show a dash.
 export default function SalesSummary({ summary }) {

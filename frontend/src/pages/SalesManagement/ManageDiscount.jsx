@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as discountApi from '../../api/discountApi.js';
 import { attempt } from '../../api/errorHandler.js';
-import { productImage } from '../../api/formatImage.js';
+import { productImage } from '../../utils/formatImage.js';
 import * as productApi from '../../api/productApi.js';
 import * as salesApi from '../../api/salesApi.js';
 import DeleteButton from '../../components/buttons/DeleteButton.jsx';
@@ -15,7 +15,7 @@ import DateRangePicker from '../../components/filters/DateRangePicker.jsx';
 import AddDiscountModal from '../../components/modals/AddDiscountModal.jsx';
 import ConfirmationModal, { ModalHeader, ModalShell } from '../../components/modals/ConfirmationModal.jsx';
 import SuccessModal from '../../components/modals/SuccessModal.jsx';
-import { formatDots, fromISO, toISO } from '../../api/formatDate.js';
+import { formatDots, fromISO, toISO } from '../../utils/formatDate.js';
 import { useDebounced } from '../../hooks/useDebounced.js';
 import { useResource } from '../../hooks/useResource.js';
 import { validateDiscountDraft, validateProductSelection } from '../../validation/discountValidation.js';

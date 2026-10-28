@@ -8,7 +8,7 @@ import StaffStepper from '../../stepper/StaffStepper.jsx';
 import { validateEmployment, validatePersonal, validateRecords } from '../../validation/staffValidation.js';
 import {
   DocumentBox, EPF_NOTE, EpfFields, SalaryFields, StaffImageField, fieldKit, useForm,
-} from './staffFormParts.jsx';
+} from './StaffFormParts.jsx';
 import { DAYS, DOCUMENT_SLOTS, EMPLOYMENT_TYPES, GENDERS, blankStaff } from './staffConstants.js';
 
 // The server's field names -> the form's, and the step that shows each.

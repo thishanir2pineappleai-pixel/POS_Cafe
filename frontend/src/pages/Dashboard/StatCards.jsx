@@ -3,7 +3,7 @@ import { ArrowUpRightIcon, BagIcon, CashIcon, ClockIcon, UserPlusIcon } from '..
 const ICONS = { sales: CashIcon, orders: BagIcon, customers: UserPlusIcon, peak: ClockIcon };
 
 // The four summary cards. A card without `change` has nothing to compare with yesterday and shows no comparison line.
-export default function StatCardsdash({ cards }) {
+export default function StatCards({ cards }) {
   return (
     <section className="dash-stats">
       {cards.map(({ id, label, value, change, tone }) => {

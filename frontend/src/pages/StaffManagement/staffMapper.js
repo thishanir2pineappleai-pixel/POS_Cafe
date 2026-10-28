@@ -1,6 +1,6 @@
 // Translates between the Staff forms (names, DD/MM/YYYY dates, "Mon" day labels, nested objects) and the Staff Service API
 // (ids, ISO dates, lowercase days). The forms keep their own shape so the screens stay as designed.
-import { formatSlash, fromISO, parseSlash, toISO } from '../../api/formatDate.js';
+import { formatSlash, fromISO, parseSlash, toISO } from '../../utils/formatDate.js';
 import { blankStaff } from './staffConstants.js';
 
 const slash = (iso) => (iso ? formatSlash(fromISO(iso)) : '');

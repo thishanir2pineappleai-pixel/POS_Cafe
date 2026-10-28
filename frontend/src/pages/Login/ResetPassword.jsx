@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import ResetpasswordButton from '../../components/buttons/ResetpasswordButton.jsx';
+import ResetPasswordButton from '../../components/buttons/ResetPasswordButton.jsx';
 import PasswordInput from '../../components/common/PasswordInput.jsx';
 import AuthLayout from '../../layout/AuthLayout.jsx';
 import { passwordStrength, validateConfirm, validateNewPassword } from '../../validation/authValidation.js';
@@ -51,7 +51,7 @@ export default function ResetPassword({ onReset, onBackToLogin }) {
           {confirmError && <span className="auth-error auth-error--small">{confirmError}</span>}
         </div>
         {serverError && <span className="auth-error auth-error--small" role="alert">{serverError}</span>}
-        <ResetpasswordButton type="submit" label={busy ? 'Please wait...' : 'Reset password'} />
+        <ResetPasswordButton type="submit" label={busy ? 'Please wait...' : 'Reset password'} />
         <button type="button" className="auth-back" onClick={onBackToLogin}>Back to login</button>
       </form>
     </AuthLayout>

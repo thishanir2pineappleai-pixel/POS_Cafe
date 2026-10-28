@@ -13,7 +13,7 @@ import DateRangePicker from '../../components/filters/DateRangePicker.jsx';
 import { useDebounced } from '../../hooks/useDebounced.js';
 import { useResource } from '../../hooks/useResource.js';
 import MainLayout from '../../layout/MainLayout.jsx';
-import { toISO } from '../../api/formatDate.js';
+import { toISO } from '../../utils/formatDate.js';
 import ManageDiscount from './ManageDiscount.jsx';
 import SalesOrders from './SalesOrders.jsx';
 import SalesSummary from './SalesSummary.jsx';
