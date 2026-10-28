@@ -13,9 +13,9 @@ microservices (each with its own Prisma schema and MySQL database). Structure an
   tables, Cashier/Barista roles. See [backend/services/sales-service/README.md](backend/services/sales-service/README.md) for the confirmed and pending rules.
 - **Frontend:** every built screen talks to the Gateway: sign-up (five steps and the access key), login, forgot/reset password,
   Dashboard, Staff list/add/details/edit, Menu (products, categories, ingredients, discount definitions, pictures), Sales (orders,
-  summary, CSV export, discount applications) and Settings (shops and admins). The screens drawn without a design are still empty
-  placeholders: Staff Attendance, Payroll, Roles & Permission and Shift, and the unused API files (customer, inventory, loyalty,
-  purchase, supplier). The backend already has endpoints for attendance, leave, payroll, roles, teams and shifts.
+  summary, CSV export, discount applications) and Settings (shops and admins). Screens without a design remain placeholders:
+  Staff Attendance, Payroll, Roles & Permission, Shift, Rewards, Deductions and Leave Management. The backend has endpoints for
+  attendance, leave, payroll, roles, teams and shifts.
 - **Verification (what was actually run):** `pnpm install --frozen-lockfile`, `pnpm check:architecture`, `pnpm db:generate`,
   `prisma validate`, all package tests with and without MySQL, the frontend build and a scripted run of the real screens.
   The MySQL runs used a **disposable** MySQL 8.0.45 instance on another port (`127.0.0.1:33306`), never your own server. The screens were driven
