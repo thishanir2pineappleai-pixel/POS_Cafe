@@ -94,9 +94,6 @@ Not built because no rules exist: order cancellation, refunds, payment providers
 
 The frontend's `src/api/` now has one module per backend area (auth, orders, sales/discount applications, reports, dashboard, products,
 categories, ingredients, discounts, staff, shops, admins, settings) on top of `client.js`, which attaches the session token and ends the
-session on a 401. These API files are still empty placeholders, because the backend has nothing behind them or their screens are not
-designed yet: `attendanceApi`, `payrollApi`, `payrollRewardApi`, `payrollDeductionApi`, `shiftApi` (the Staff Service endpoints exist),
-and `customerApi`, `inventoryApi`, `loyaltyApi`, `purchaseApi`, `supplierApi`, `axiosInstance` (no backend). The Staff Attendance,
-Payroll, Roles & Permission and Shift pages are empty files for the same reason.
+session on a 401. The empty staff API placeholders are `attendanceApi`, `payrollApi`, `payrollRewardApi`, `payrollDeductionApi` and `shiftApi`; the Staff Service endpoints exist. Staff Attendance, Payroll, Roles & Permission, Shift, Rewards and Deductions screens, their staff validation files, and `routes/ProtectedRoute.jsx` are also placeholders marked with TODO comments.
 
 Other page files that are still empty because no design or rule exists for them: Dashboard `RegularCustomers`, Sales `PeakHourAnalysis`, Menu `CategoryManagement` / `IngredientManagement` / `DiscountMenu` (categories, ingredients and discount definitions are managed inside the product form), `Waiter/Orderlistpage`, and the Inventory and Customer Management sidebar items.
