@@ -59,6 +59,7 @@ pnpm dev:frontend   # UI :5173 (second terminal)
 
 One service only: `pnpm dev:gateway`, `dev:auth`, `dev:settings`, `dev:staff`, `dev:menu`, `dev:sales`.
 Health: `http://127.0.0.1:4100/health/services`. The frontend calls only the Gateway (`VITE_API_BASE_URL`, default `http://127.0.0.1:4100/api/v1`).
+For production SPA routing, configure the web server to serve `index.html` as the fallback for frontend URLs so direct links and refreshes work.
 
 ## Database (optional)
 

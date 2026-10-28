@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import * as adminApi from '../../api/adminProfileApi.js';
 import { uploadUrl } from '../../api/client.js';
 import { attempt, messageFor } from '../../api/errorHandler.js';
@@ -58,11 +59,14 @@ const adminModel = (a) => ({
 // create a shop or an admin; the server enforces that too.
 export default function Settings() {
   const { user, refreshUser } = useAuth();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const { pathname } = useLocation();
   const isOwner = user?.role === 'Owner';
-  const [tab, setTab] = useState('shop');
-  const [view, setView] = useState('list'); // list | add | details | edit
-  const [shopId, setShopId] = useState(null);
-  const [adminId, setAdminId] = useState(null);
+  const tab = pathname.startsWith('/settings/admins') ? 'admin' : 'shop';
+  const view = pathname.endsWith('/new') ? 'add' : pathname.endsWith('/edit') ? 'edit' : id ? 'details' : 'list';
+  const shopId = tab === 'shop' ? id : null;
+  const adminId = tab === 'admin' ? id : null;
   const [typingPassword, setTypingPassword] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -76,7 +80,14 @@ export default function Settings() {
 
   const showToast = (title, message) => setToast({ id: Date.now(), title, message });
   const closeToast = useCallback(() => setToast(null), []);
-  const go = (nextTab, nextView = 'list') => { setTab(nextTab); setView(nextView); setTypingPassword(false); };
+  const go = (nextTab, nextView = 'list', profileId) => {
+    setTypingPassword(false);
+    const section = nextTab === 'admin' ? 'admins' : 'shops';
+    const path = nextView === 'list' ? (nextTab === 'admin' ? '/settings/admins' : '/settings')
+      : nextView === 'add' ? `/settings/${section}/new`
+        : `/settings/${section}/${profileId}${nextView === 'edit' ? '/edit' : ''}`;
+    navigate(path);
+  };
 
   // Uploads the chosen picture after the profile exists. A failed upload does not undo the saved profile; it is reported.
   const uploadPicture = async (upload, id, file) => {
@@ -134,8 +145,8 @@ export default function Settings() {
             {active.loading && !active.data && <LoadingState />}
             {active.error && <ErrorState message={active.error} onRetry={active.reload} />}
             {active.data && (tab === 'shop'
-              ? <ShopProfiles shops={shops} canCreate={isOwner} onCreate={() => go('shop', 'add')} onOpen={(id) => { setShopId(id); go('shop', 'details'); }} />
-              : <AdminProfiles admins={admins} canCreate={isOwner} onCreate={() => go('admin', 'add')} onOpen={(id) => { setAdminId(id); go('admin', 'details'); }} />)}
+              ? <ShopProfiles shops={shops} canCreate={isOwner} onCreate={() => go('shop', 'add')} onOpen={(profileId) => go('shop', 'details', profileId)} />
+              : <AdminProfiles admins={admins} canCreate={isOwner} onCreate={() => go('admin', 'add')} onOpen={(profileId) => go('admin', 'details', profileId)} />)}
           </div>
         </div>
       )}
@@ -144,9 +155,9 @@ export default function Settings() {
         <AddShopProfile timezones={timezonesLoad.data ?? []} onCancel={() => go('shop')}
           onSave={saveShop(null, 'Shop Profile Added Successfully !', 'The shop has been created and is now active.')} />
       )}
-      {tab === 'shop' && view === 'details' && shop && <ShopProfileDetails shop={shop} onEdit={() => go('shop', 'edit')} />}
+      {tab === 'shop' && view === 'details' && shop && <ShopProfileDetails shop={shop} onEdit={() => go('shop', 'edit', shopId)} />}
       {tab === 'shop' && view === 'edit' && shop && (
-        <EditShopProfile profile={shop} timezones={timezonesLoad.data ?? []} onCancel={() => go('shop', 'details')}
+        <EditShopProfile profile={shop} timezones={timezonesLoad.data ?? []} onCancel={() => go('shop', 'details', shopId)}
           onSave={saveShop(shopId, 'Shop profile updated successfully!', 'All changes to your shop profile have been saved.')} />
       )}
 
@@ -155,10 +166,10 @@ export default function Settings() {
           onSave={saveAdmin(null, 'Admin Profile Added Successfully !', 'You can now log in and access the system.')} />
       )}
       {tab === 'admin' && view === 'details' && admin && (
-        <AdminProfileDetails admin={admin} onEdit={() => go('admin', 'edit')} onDraftChange={setTypingPassword} onUpdatePassword={changePassword} />
+        <AdminProfileDetails admin={admin} onEdit={() => go('admin', 'edit', adminId)} onDraftChange={setTypingPassword} onUpdatePassword={changePassword} />
       )}
       {tab === 'admin' && view === 'edit' && admin && (
-        <EditAdminProfile profile={admin} onCancel={() => go('admin', 'details')}
+        <EditAdminProfile profile={admin} onCancel={() => go('admin', 'details', adminId)}
           onSave={saveAdmin(adminId, 'Admin Profile Updated Successfully !', 'You can now log in and access the system.')} />
       )}
 

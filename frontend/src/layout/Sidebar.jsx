@@ -1,31 +1,35 @@
+import { NavLink, useNavigate } from 'react-router-dom';
 import LogoutButton from '../components/buttons/LogoutButton.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useNavigate } from '../context/NavigationContext.jsx';
 import {
   CustomersIcon, CupIcon, DashboardIcon, InventoryIcon, SalesIcon, SettingsIcon, StaffIcon, UserIcon,
 } from '../components/common/Icons.jsx';
 
 const NAV = [
-  { label: 'Dashboard', Icon: DashboardIcon },
-  { label: 'Staff Management', Icon: StaffIcon },
-  { label: 'Menu Management', Icon: CupIcon },
-  { label: 'Sales Management', Icon: SalesIcon },
+  { label: 'Dashboard', Icon: DashboardIcon, to: '/dashboard' },
+  { label: 'Staff Management', Icon: StaffIcon, to: '/staff' },
+  { label: 'Menu Management', Icon: CupIcon, to: '/menu' },
+  { label: 'Sales Management', Icon: SalesIcon, to: '/sales' },
   { label: 'Inventory Management', Icon: InventoryIcon },
   { label: 'Customer Management', Icon: CustomersIcon },
-  { label: 'Settings', Icon: SettingsIcon },
+  { label: 'Settings', Icon: SettingsIcon, to: '/settings' },
 ];
 
-// ponytail: Inventory and Customer Management are not built yet, so those items do nothing.
-// The name and email are the signed-in user's. Logout ends the session and returns to the login screens.
-export default function Sidebar({ active = 'Menu Management' }) {
+export default function Sidebar() {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+  const logout = async () => { await signOut(); navigate('/login', { replace: true }); };
+
   return (
     <aside className="sidebar">
       <nav className="sidebar__nav">
-        {NAV.map(({ label, Icon }) => (
-          <button type="button" key={label} className={`nav-item${label === active ? ' nav-item--active' : ''}`}
-            aria-current={label === active ? 'page' : undefined} onClick={() => navigate(label)}>
+        {NAV.map(({ label, Icon, to }) => to ? (
+          <NavLink key={label} to={to} className={({ isActive }) => `nav-item${isActive ? ' nav-item--active' : ''}`}>
+            <Icon size={20} />
+            {label}
+          </NavLink>
+        ) : (
+          <button type="button" key={label} className="nav-item" disabled aria-disabled="true">
             <Icon size={20} />
             {label}
           </button>
@@ -39,7 +43,7 @@ export default function Sidebar({ active = 'Menu Management' }) {
             <div className="user-email">{user?.email ?? ''}</div>
           </div>
         </div>
-        <LogoutButton onClick={signOut} />
+        <LogoutButton onClick={logout} />
       </div>
       <div className="sidebar__footer">Powered by PineappleAI</div>
     </aside>

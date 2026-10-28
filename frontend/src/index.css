@@ -50,7 +50,8 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .sidebar { display: flex; flex-direction: column; background: #fff; border-right: 1px solid var(--line-soft); }
 .sidebar__nav { display: flex; flex-direction: column; gap: 16px; padding: 30px 32px 0; }
-.nav-item { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: transparent; color: var(--text); font-size: 15px; text-align: left; }
+.nav-item { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: transparent; color: var(--text); font-size: 15px; text-align: left; text-decoration: none; }
+.nav-item:disabled { opacity: 1; cursor: default; }
 .nav-item:hover { background: var(--bg); }
 .nav-item--active, .nav-item--active:hover { background: var(--green); color: #fff; }
 .sidebar__user { margin-top: auto; padding: 0 32px 18px; display: flex; flex-direction: column; gap: 22px; }

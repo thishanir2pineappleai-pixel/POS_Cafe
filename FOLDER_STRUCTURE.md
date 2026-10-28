@@ -33,6 +33,7 @@ POS_Cafe/
 ```
 
 Page folders and React component files: PascalCase. Other JS files and non-page folders: camelCase/lowercase.
+Frontend URLs are declared in `src/routes/AppRoutes.jsx`; `BrowserRouter` enables history navigation and `ProtectedRoute.jsx` guards signed-in screens.
 
 ## Service layout
 
@@ -96,6 +97,6 @@ Not built because no rules exist: order cancellation, refunds, payment providers
 
 The frontend's `src/api/` now has one module per backend area (auth, orders, sales/discount applications, reports, dashboard, products,
 categories, ingredients, discounts, staff, shops, admins, settings) on top of `client.js`, which attaches the session token and ends the
-session on a 401. The empty staff API placeholders are `attendanceApi`, `payrollApi`, `payrollRewardApi`, `payrollDeductionApi` and `shiftApi`; the Staff Service endpoints exist. Staff Attendance, Payroll, Roles & Permission, Shift, Rewards and Deductions screens, their staff validation files, and `routes/ProtectedRoute.jsx` are also placeholders marked with TODO comments.
+session on a 401. The empty staff API placeholders are `attendanceApi`, `payrollApi`, `payrollRewardApi`, `payrollDeductionApi` and `shiftApi`; the Staff Service endpoints exist. Staff Attendance, Payroll, Roles & Permission, Shift, Rewards, Deductions and Leave Management screens, plus their staff validation files, are placeholders marked with TODO comments.
 
 `pages/StaffManagement/LeaveManagement.jsx` is also a placeholder for the Staff Service's leave, half-day leave and hour permission records.

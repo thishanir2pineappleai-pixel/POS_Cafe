@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import * as authApi from '../api/authApi.js';
 import { emailNotice, phoneNotice, PHONE_SKIPPED_NOTICE, screenAfterOwner } from '../api/deliveryNotice.js';
 import { attempt } from '../api/errorHandler.js';
@@ -22,13 +23,20 @@ const BLANK_SIGNUP = { email: '', username: '', password: '', agreed: false, own
 
 // The notice under a code screen comes from what the server reported about the delivery (see api/deliveryNotice.js).
 const NOT_CONFIGURED = { delivered: false, reason: 'not_configured' };
+const ROUTE_FOR_VIEW = {
+  login: '/login', forgot: '/forgot-password', forgotCode: '/forgot-password', reset: '/forgot-password', resetDone: '/forgot-password',
+  credentials: '/signup', emailVerify: '/signup', owner: '/signup', phoneVerify: '/signup', business: '/signup', created: '/signup',
+  accessKey: '/signup/access-key', faq: '/faq', contact: '/contact-us',
+};
+const VIEW_FOR_PATH = { '/login': 'login', '/forgot-password': 'forgot', '/signup': 'credentials', '/signup/access-key': 'accessKey', '/faq': 'faq', '/contact-us': 'contact' };
 
 // The screens shown before sign-in: Login, Forgot Password and the five-step Signup. Every step talks to the Auth Service
 // through the Gateway: a step moves on only when the server accepts it, and the server's messages are shown on the screen.
-// ponytail: no router library is installed, so the current screen is a state value.
 export default function AuthFlow() {
   const { signIn } = useAuth();
-  const [view, setView] = useState('login');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [view, setView] = useState(() => location.state?.authView ?? VIEW_FOR_PATH[location.pathname] ?? 'login');
   const [signup, setSignup] = useState(BLANK_SIGNUP);
   const [registrationToken, setRegistrationToken] = useState('');
   const [resetEmail, setResetEmail] = useState('');
@@ -36,14 +44,25 @@ export default function AuthFlow() {
   const [notice, setNotice] = useState('');
   const [activated, setActivated] = useState(false); // shows "account activated" once on the login screen
   const patchSignup = (patch) => setSignup((s) => ({ ...s, ...patch }));
-  const go = (next) => () => setView(next);
-  const restartSignup = () => { setSignup(BLANK_SIGNUP); setRegistrationToken(''); setNotice(''); setView('credentials'); };
+  const routeTo = (next) => {
+    setView(next);
+    const path = ROUTE_FOR_VIEW[next];
+    if (path && path !== location.pathname) navigate(path, { state: { ...location.state, authView: next } });
+  };
+  const go = (next) => () => routeTo(next);
+  const restartSignup = () => { setSignup(BLANK_SIGNUP); setRegistrationToken(''); setNotice(''); routeTo('credentials'); };
+
+  // Route history restores the separate auth screens; the multi-step signup and password reset flows stay in local state.
+  useEffect(() => {
+    const next = location.state?.authView ?? VIEW_FOR_PATH[location.pathname];
+    if (next) setView(next);
+  }, [location.key]);
 
   // Each handler resolves to { ok, error?, fields? } (see attempt); on success it moves to the next screen. `next` is a screen
   // name, or a function of the server's answer when the server decides the next step.
   const step = (call, next, onData) => async (...args) => {
     const result = await attempt(() => call(...args));
-    if (result.ok) { onData?.(result.data); setView(typeof next === 'function' ? next(result.data) : next); }
+    if (result.ok) { onData?.(result.data); routeTo(typeof next === 'function' ? next(result.data) : next); }
     return result;
   };
   const resend = (call, noticeOf) => async () => {
@@ -58,7 +77,7 @@ export default function AuthFlow() {
         <ForgotPassword email={resetEmail} onBackToLogin={go('login')}
           onContinue={async (email) => {
             const result = await attempt(() => authApi.forgotPassword(email));
-            if (result.ok) { setResetEmail(email); setNotice(result.data?.deliveryConfigured === false ? emailNotice(NOT_CONFIGURED) : ''); setView('forgotCode'); }
+            if (result.ok) { setResetEmail(email); setNotice(result.data?.deliveryConfigured === false ? emailNotice(NOT_CONFIGURED) : ''); routeTo('forgotCode'); }
             return result;
           }} />
       );
@@ -115,14 +134,14 @@ export default function AuthFlow() {
         <AccessKey onBack={go('created')} onResend={() => attempt(() => authApi.resendAccessKey(signup.email))}
           onNext={async (accessKey) => {
             const result = await attempt(() => authApi.activateAccount({ email: signup.email, accessKey }));
-            if (result.ok) { setSignup(BLANK_SIGNUP); setRegistrationToken(''); setNotice(''); setActivated(true); setView('login'); }
+            if (result.ok) { setSignup(BLANK_SIGNUP); setRegistrationToken(''); setNotice(''); setActivated(true); routeTo('login'); }
             return result;
           }} />
       );
 
     default:
       return (
-        <Login onSubmit={signIn} onForgotPassword={() => { setNotice(''); setActivated(false); setView('forgot'); }}
+        <Login onSubmit={signIn} onForgotPassword={() => { setNotice(''); setActivated(false); routeTo('forgot'); }}
           onSignup={() => { setActivated(false); restartSignup(); }} notice={activated ? 'Your account is activated. Sign in to continue.' : ''} />
       );
   }

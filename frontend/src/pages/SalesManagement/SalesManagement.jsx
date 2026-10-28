@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { saveBlob } from '../../api/client.js';
 import { attempt } from '../../api/errorHandler.js';
 import * as orderApi from '../../api/orderApi.js';
@@ -24,9 +25,10 @@ const toRow = (o) => ({ id: o.orderId, type: o.type, customer: o.customer ?? '-'
 
 // Orders and the four summary numbers for the chosen dates come from the Sales Service (through the Gateway).
 export default function SalesManagement() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const today = useMemo(() => new Date(), []);
   const todayRange = useMemo(() => ({ start: today, end: today }), [today]);
-  const [screen, setScreen] = useState('dashboard'); // dashboard | discounts
   const [range, setRange] = useState(todayRange);
   const [picking, setPicking] = useState(false);
   const [query, setQuery] = useState('');
@@ -55,7 +57,7 @@ export default function SalesManagement() {
     else setNotice(result.error);
   };
 
-  const discounts = screen === 'discounts';
+  const discounts = pathname === '/sales/discounts';
   const title = discounts
     ? <>{['Sales Management', 'Manage Discount'].map((p, i) => <Fragment key={p}>{i > 0 && <ChevronRightIcon size={22} className="title-sep" />}{p}</Fragment>)}</>
     : 'Sales Management';
@@ -70,7 +72,7 @@ export default function SalesManagement() {
               <div className="sales-top__label">Select Date / Date Range</div>
               <DateFilter range={range} today={today} onOpen={() => setPicking(true)} onReset={() => applyRange(todayRange)} />
             </div>
-            <ManageDiscountButton onClick={() => setScreen('discounts')} />
+            <ManageDiscountButton onClick={() => navigate('/sales/discounts')} />
           </section>
 
           {summary.error && <ErrorState message={summary.error} onRetry={summary.reload} />}
@@ -86,7 +88,7 @@ export default function SalesManagement() {
           )}
         </>
       )}
-      {discounts && <ManageDiscount onBack={() => setScreen('dashboard')} today={today} />}
+      {discounts && <ManageDiscount onBack={() => navigate('/sales')} today={today} />}
     </MainLayout>
   );
 }

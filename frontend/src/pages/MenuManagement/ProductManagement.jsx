@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import * as categoryApi from '../../api/categoryApi.js';
 import { attempt, messageFor } from '../../api/errorHandler.js';
 import * as discountApi from '../../api/discountApi.js';
@@ -52,7 +53,12 @@ function SummaryCard({ tone, Icon, label, value }) {
 
 // Products, categories, ingredients and discount definitions are stored by the Menu Service (through the Gateway).
 export default function ProductManagement() {
-  const [screen, setScreen] = useState({ name: 'list' }); // list | add | edit | details ({ id } for the last two)
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const { pathname } = useLocation();
+  const screen = pathname === '/menu/products/new' ? { name: 'add' }
+    : pathname.endsWith('/edit') ? { name: 'edit', id }
+      : id ? { name: 'details', id } : { name: 'list' };
   const [query, setQuery] = useState('');
   const search = useDebounced(query);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -88,8 +94,8 @@ export default function ProductManagement() {
   const updateFilter = (key) => (value) => { setFilters((f) => ({ ...f, [key]: value })); setPage(1); };
   const clearFilters = () => { setFilters(NO_FILTERS); setPage(1); };
 
-  const toList = () => { setScreen({ name: 'list' }); setProblem(''); };
-  const toDetails = (id) => setScreen({ name: 'details', id });
+  const toList = () => { setProblem(''); navigate('/menu'); };
+  const toDetails = (productId) => navigate(`/menu/products/${productId}`);
 
   // The form speaks names; the API wants ids.
   const bodyOf = (data) => ({
@@ -183,7 +189,7 @@ export default function ProductManagement() {
             <div className="toolbar">
               <SearchInput value={query} onChange={updateQuery} placeholder="Search product name, product id , category and status" />
               <FilterButton open={filterOpen} onClick={() => setFilterOpen(!filterOpen)} />
-              <AddButton label="Add Product" onClick={() => setScreen({ name: 'add' })} />
+              <AddButton label="Add Product" onClick={() => navigate('/menu/products/new')} />
             </div>
 
             {filterOpen && (
@@ -201,7 +207,7 @@ export default function ProductManagement() {
             {list.data && (
               <ProductTable products={list.data.data}
                 onView={(p) => toDetails(p.id)}
-                onEdit={(p) => setScreen({ name: 'edit', id: p.id })}
+                onEdit={(p) => navigate(`/menu/products/${p.id}/edit`)}
                 onDelete={setDeleting} />
             )}
           </section>
@@ -224,7 +230,7 @@ export default function ProductManagement() {
         <>
           {problem && <ErrorState message={problem} />}
           <ProductDetails product={current} onBack={toList}
-            onEdit={() => setScreen({ name: 'edit', id: current.id })}
+            onEdit={() => navigate(`/menu/products/${current.id}/edit`)}
             onEditIngredient={(ingredient) => setIngredientEdit({ ingredient, quantity: '' })} />
         </>
       )}
